@@ -5,7 +5,7 @@ const youWonDiv = document.getElementById("youWonDiv")
 
 // Size of the squares in the grid, in pixels.
 const delta = 33;
-
+let count = 0
 // Coordinates of the player's avatar.
 let avatarRow; 
 let avatarCol;
@@ -32,6 +32,54 @@ const crates = [];
 // storage at the same time.
 //
 // Continue to STEP 2
+var numbercrates = 0
+for(let row = 0; row < map.length; row++) {
+    const rowStr = map[row];
+    const rowDiv = document.createElement("div");
+
+    rowDiv.className = "row";
+    var crateRow = []
+    
+    for(let i = 0; i < rowStr.length; i++) {
+        let cellClass = rowStr[i];
+        const cellDiv = document.createElement("div");
+        var newCrate = ""
+
+        cellDiv.className = "cell " + cellClass;
+
+        if(cellClass === "S") {
+            cellDiv.textContent = "S"
+            avatarCol = i;
+            avatarRow = row;
+        }
+        rowDiv.appendChild(cellDiv);
+
+
+        if(cellClass === "S" || cellClass === "F") {
+            cellDiv.innerHTML = cellClass;
+        }
+
+        rowDiv.appendChild(cellDiv);
+
+        if(cellClass === "F"){
+            cellDiv.textContent = "F"
+        }
+        mazeDiv.appendChild(rowDiv);
+        if(cellClass === "B") {
+            newCrate = crate(row,i)
+            numbercrates ++
+        }
+        if(cellClass === "X") {
+            newCrate = crate(row,i)
+            cellDiv.className = "cell " + "O";
+            count ++
+            numbercrates ++
+        }
+       crateRow.push(newCrate) 
+    }
+    crates.push(crateRow)
+}
+
 
 
 // Helper function for creating a div representing a box/crate,
@@ -64,8 +112,43 @@ function move(dRow, dCol) {
     const destCol = avatarCol + dCol;
     const destCell = map[destRow][destCol];
 
+
+
     // Check if there is a crate there.
     const crate = crates[destRow][destCol];
+    if(crate){
+        var CrateDestRow = destRow + dRow
+        var CrateDestCol = destCol + dCol
+
+        if(map[CrateDestRow][CrateDestCol] === "W"){
+            return
+        }
+        if(crates[CrateDestRow][CrateDestCol] !== ""){
+            return
+        }
+        crates[CrateDestRow][CrateDestCol] = crate
+        crates[destRow][destCol] = ""
+
+        if(map[CrateDestRow][CrateDestCol] === "O"){
+            count ++
+        }
+        if(map[CrateDestRow][CrateDestCol] === "X"){
+            count ++
+        }
+        if(map[destRow][destCol] === "O"){
+            count --
+        }
+        if(map[destRow][destCol] === "X"){
+            count --
+        }
+        crate.style.top = CrateDestRow * delta + "px";
+        crate.style.left = CrateDestCol * delta + "px";
+    } 
+    if(destCell && destCell !== "W") {
+        avatarRow += dRow;
+        avatarCol += dCol;
+        redrawAvatar();
+    }
 
     // STEP 2 -----------------------------------------------------------------/
     // For the maze, it was enough to check that the place the player wanted to
@@ -85,10 +168,16 @@ function move(dRow, dCol) {
 }
 
 function checkForWin() {
+    if(count === numbercrates){
+        youWonDiv.classList.remove("hidden");
+    }
+
+
+    
+    return
     // STEP 3 -----------------------------------------------------------------/
     // Write a function that checks if the player won. A player wins when all
     // boxes are moved over all storage spaces.
-    youWonDiv.classList.remove("hidden");
 }
 
 document.addEventListener('keydown', (event) => {
